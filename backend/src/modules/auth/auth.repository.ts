@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { IAuthRepository } from "./auth.interface.js";
-import { createUserType } from "./auth.types.js";
+import { createSessionType, createUserType } from "./auth.types.js";
 
 export class AuthRepository implements IAuthRepository {
   async findUserByEmail(email: string) {
@@ -22,5 +22,13 @@ export class AuthRepository implements IAuthRepository {
     });
 
     return createdUser;
+  }
+
+  async createSession(data: createSessionType) {
+    const newSession = await prisma.session.create({
+      data,
+    });
+
+    return newSession;
   }
 }
