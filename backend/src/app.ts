@@ -11,6 +11,7 @@ export const app = express();
 // app.set("trust proxy", 1);
 
 app.use(helmet());
+app.use(requestLogger);
 app.use(
   cors({
     origin: env.FRONTEND_URL,
@@ -24,11 +25,14 @@ app.use(cookieParser());
 app.get("/health-check", (req: Request, res: Response) => {
   return res.status(200).json({
     success: true,
+    uptime: process.uptime(),
+    timestamp: Date.now(),
     message: "Health is fine",
   });
 });
 
 import authRouter from "./modules/auth/auth.route.js";
+import { requestLogger } from "./middlewares/request-logger.middleware.js";
 
 app.use("/api/v1/auth", authRouter);
 

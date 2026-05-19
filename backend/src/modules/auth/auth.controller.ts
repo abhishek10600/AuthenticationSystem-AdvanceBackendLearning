@@ -3,6 +3,7 @@ import { catchAsync } from "../../utils/common/helpers/CatchAsync.js";
 import { authService } from "./auth.container.js";
 import { sendResponse } from "../../utils/common/response/AppResponse.js";
 import { setCookies } from "../../utils/auth/auth.helper.js";
+import { AppError } from "../../utils/common/errors/AppError.js";
 
 export const registerUserController = catchAsync(
   async (req: Request, res: Response) => {
@@ -51,6 +52,22 @@ export const loginUserController = catchAsync(
         user: result.user,
         accessToken: result.accessToken,
       },
+    });
+  },
+);
+
+export const loggedInUserController = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = req.user;
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+    const result = await authService.getLoggedInUser(user);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "User fetched successfully",
+      data: result,
     });
   },
 );

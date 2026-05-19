@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { env } from "../config/env.config.js";
+import { logger } from "../config/logger.js";
 
 export const globalErrorHandler = (
   err: Error & {
@@ -17,6 +18,11 @@ export const globalErrorHandler = (
   error.status = err.status || "error";
 
   if (env.NODE_ENV === "development") {
+    logger.error({
+      message: error.message,
+      stack: err.stack,
+      error,
+    });
     return res.status(error.statusCode).json({
       status: error.status,
       message: error.message,
@@ -26,12 +32,20 @@ export const globalErrorHandler = (
   }
 
   if (error.isOperational) {
+    logger.error({
+      status: error.status,
+      message: error.message,
+    });
     return res.status(error.statusCode).json({
       status: error.status,
       message: error.message,
     });
   }
 
+  logger.error({
+    success: false,
+    message: "Something went wrong",
+  });
   return res.status(500).json({
     success: false,
     message: "Something went wrong",
