@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../utils/common/helpers/CatchAsync.js";
 import { authService } from "./auth.container.js";
 import { sendResponse } from "../../utils/common/response/AppResponse.js";
-import { setCookies } from "../../utils/auth/auth.helper.js";
+import { clearCookies, setCookies } from "../../utils/auth/auth.helper.js";
 import { AppError } from "../../utils/common/errors/AppError.js";
 
 export const registerUserController = catchAsync(
@@ -68,6 +68,58 @@ export const loggedInUserController = catchAsync(
       success: true,
       message: "User fetched successfully",
       data: result,
+    });
+  },
+);
+
+export const refreshTokenController = catchAsync(
+  async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      throw new AppError("Refresh token is missing.", 401);
+    }
+
+    const result = await authService.refreshSession(refreshToken);
+
+    setCookies(res, result.refreshToken);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "Refresh token rotated successfully",
+      data: {
+        accessToken: result.accessToken,
+      },
+    });
+  },
+);
+
+export const logoutController = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = req.user;
+
+    await authService.logout(user?.userId as string, user?.sessionId as string);
+
+    clearCookies(res);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "User logged out successfully",
+    });
+  },
+);
+
+export const logoutUserFromAllSessions = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = req.user;
+
+    await authService.logoutUserFromAllSessions(user?.userId as string);
+
+    clearCookies(res);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "User logged out of all devices",
     });
   },
 );

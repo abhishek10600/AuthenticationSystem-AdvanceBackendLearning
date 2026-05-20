@@ -20,9 +20,15 @@ export type findUserByIdType = {
 };
 
 export type createSessionType = {
+  id: string;
   userId: string;
   refreshTokenHash: string;
   userAgent?: string;
   ipAddress?: string;
   expiresAt: Date;
+};
+
+export type updateSessionType = {
+  hashedNewRefreshToken: string;
+  newRefreshTokenExpiresAt: Date;
 };

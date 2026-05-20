@@ -19,10 +19,19 @@ export const setCookies = (res: Response, refreshToken: string) => {
   }
 
   res.cookie("refreshToken", refreshToken, {
+    httpOnly: true, // blocks document.cookie from accessing cookie
+    secure: env.NODE_ENV === "production", // if true it is only used for HTTPs
+    sameSite: "strict",
+    maxAge: refreshTokenMaxAge,
+    path: "/api/v1/auth/refresh-token", // pass the refresh token path here
+  });
+};
+
+export const clearCookies = (res: Response) => {
+  res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: refreshTokenMaxAge,
-    // path: "/api/v1/auth/refresh"
+    path: "/api/v1/auth/refresh-token",
   });
 };
