@@ -58,7 +58,7 @@ model Role {
 model Permission {
   id              String           @id @default(uuid())
   name            String           @unique
-  cratedAt        DateTime         @default(now())
+  createdAt       DateTime         @default(now())
   rolePermissions RolePermission[]
 }
 
@@ -70,6 +70,8 @@ model UserRole {
   assignedAt DateTime @default(now())
 
   @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
 }
 
 model RolePermission {
@@ -80,4 +82,6 @@ model RolePermission {
   assignedAt   DateTime   @default(now())
 
   @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
 }
