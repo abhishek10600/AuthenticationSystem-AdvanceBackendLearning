@@ -204,4 +204,38 @@ export class AuthService {
   async logoutUserFromAllSessions(userId: string) {
     await this.authRepo.deleteUserAllSessions(userId);
   }
+
+  async getUserPermissions(userId: string) {
+    const user = await this.authRepo.getUserPermissions(userId);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    // console.dir(user, { depth: null });
+
+    // get the roles
+    const roles = user.userRoles.map((userRole) => userRole.role.name);
+
+    // get the permissions
+    const permissions = user.userRoles.flatMap((userRole) =>
+      userRole.role.rolePermissions.map(
+        (rolePermission) => rolePermission.permission.name,
+      ),
+    );
+
+    // get the unique permissions
+    const uniquePermissions = [...new Set(permissions)];
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+
+      roles,
+
+      permissions: uniquePermissions,
+    };
+  }
 }

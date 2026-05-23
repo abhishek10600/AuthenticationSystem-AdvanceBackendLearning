@@ -123,3 +123,17 @@ export const logoutUserFromAllSessions = catchAsync(
     });
   },
 );
+
+export const getUserPermissionsController = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = req.user;
+
+    const result = await authService.getUserPermissions(user?.userId as string);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "User permissions fetched successfully",
+      data: result,
+    });
+  },
+);

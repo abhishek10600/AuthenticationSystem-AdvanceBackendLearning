@@ -2,6 +2,7 @@ import express from "express";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { loginUserSchema, registerUserSchema } from "./auth.schema.js";
 import {
+  getUserPermissionsController,
   loggedInUserController,
   loginUserController,
   logoutController,
@@ -20,6 +21,10 @@ router
 router.route("/login").post(validate(loginUserSchema), loginUserController);
 
 router.route("/me").get(authMiddleware, loggedInUserController);
+
+router
+  .route("/me/permissions")
+  .get(authMiddleware, getUserPermissionsController);
 
 router.route("/refresh-token").post(refreshTokenController);
 

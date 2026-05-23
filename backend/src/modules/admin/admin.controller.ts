@@ -14,3 +14,29 @@ export const getAllUsersController = catchAsync(
     });
   },
 );
+
+export const getAllRolesController = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await adminService.getAllRoles();
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "All roles fetched successfully",
+      data: result,
+    });
+  },
+);
+
+export const getRoleByIdController = catchAsync(
+  async (req: Request, res: Response) => {
+    const roleId = req.params.roleId as string;
+
+    const result = await adminService.getRoleById(roleId);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "Role fetched successfully",
+      data: result,
+    });
+  },
+);
