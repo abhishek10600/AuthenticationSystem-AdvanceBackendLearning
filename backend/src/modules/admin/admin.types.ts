@@ -59,3 +59,8 @@ export type GetRoleByIdType = Prisma.RoleGetPayload<{
     };
   };
 }>;
+
+export type UpdateRoleInputType = {
+  name?: string;
+  permissions?: string[];
+};

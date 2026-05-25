@@ -40,3 +40,29 @@ export const getRoleByIdController = catchAsync(
     });
   },
 );
+
+export const createRoleController = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await adminService.createRole(req.body);
+
+    sendResponse(res, 201, {
+      success: true,
+      message: "Role created successfully",
+      data: result,
+    });
+  },
+);
+
+export const updateController = catchAsync(
+  async (req: Request, res: Response) => {
+    const roleId = req.params.roleId as string;
+
+    const result = await adminService.updateRole(roleId, req.body);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "Role updated successfully",
+      data: result,
+    });
+  },
+);

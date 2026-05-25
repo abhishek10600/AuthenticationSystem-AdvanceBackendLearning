@@ -1,6 +1,7 @@
 import { AppError } from "../../utils/common/errors/AppError.js";
 import { toResponseDTO } from "./admin.dto.js";
 import { IAdminRepository } from "./admin.interface.js";
+import { CreateRoleInputDTO, UpdateRoleInputDTO } from "./admin.schema.js";
 
 export class AdminService {
   constructor(private adminRepo: IAdminRepository) {}
@@ -37,5 +38,22 @@ export class AdminService {
     const responseDTO = toResponseDTO(role);
 
     return responseDTO;
+  }
+
+  async createRole(data: CreateRoleInputDTO) {
+    const role = await this.adminRepo.createRoleWithPermissions(
+      data.name,
+      data.permissions,
+    );
+
+    console.log({ role });
+
+    return role;
+  }
+
+  async updateRole(roleId: string, data: UpdateRoleInputDTO) {
+    const updatedRole = await this.adminRepo.updateRole(roleId, data);
+
+    return updatedRole;
   }
 }
