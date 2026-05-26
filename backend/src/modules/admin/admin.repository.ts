@@ -1,7 +1,11 @@
 import { prisma } from "../../lib/prisma.js";
 import { AppError } from "../../utils/common/errors/AppError.js";
 import { IAdminRepository } from "./admin.interface.js";
-import { UpdateRoleInputDTO } from "./admin.schema.js";
+import {
+  AssignRoleInputDTO,
+  getRoleByIdSchema,
+  UpdateRoleInputDTO,
+} from "./admin.schema.js";
 import { UpdateRoleInputType } from "./admin.types.js";
 
 export class AdminRepository implements IAdminRepository {
@@ -13,6 +17,9 @@ export class AdminRepository implements IAdminRepository {
 
   async getAllRoles() {
     const roles = await prisma.role.findMany({
+      where: {
+        isDeleted: false,
+      },
       select: {
         id: true,
         name: true,
@@ -48,6 +55,7 @@ export class AdminRepository implements IAdminRepository {
     const role = await prisma.role.findUnique({
       where: {
         id: roleId,
+        isDeleted: false,
       },
 
       select: {
@@ -85,6 +93,18 @@ export class AdminRepository implements IAdminRepository {
     });
 
     return role;
+  }
+
+  async getRolesByIds(roleIds: string[]) {
+    const roles = await prisma.role.findMany({
+      where: {
+        id: {
+          in: roleIds,
+        },
+      },
+    });
+
+    return roles;
   }
 
   async createRoleWithPermissions(name: string, permissions: string[]) {
@@ -202,4 +222,170 @@ export class AdminRepository implements IAdminRepository {
       return updateRole;
     });
   }
+
+  async deleteRole(roleId: string) {
+    await prisma.$transaction(async (tx) => {
+      const existingRole = await tx.role.findUnique({
+        where: {
+          id: roleId,
+          isDeleted: false,
+        },
+        include: {
+          userRoles: true,
+        },
+      });
+
+      if (!existingRole) {
+        throw new AppError("ROLE_NOT_FOUND", 404);
+      }
+
+      if (existingRole.userRoles.length > 0) {
+        throw new AppError("ROLE_ASSIGNED_TO_USER", 409);
+      }
+
+      await tx.role.update({
+        where: {
+          id: roleId,
+        },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      });
+
+      return true;
+    });
+  }
+
+  async assignRoleToUser(userId: string, roleIds: string[]) {
+    await prisma.$transaction(async (tx) => {
+      const existingUser = await tx.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (!existingUser) {
+        throw new AppError("User not found", 404);
+      }
+
+      const roles = await tx.role.findMany({
+        where: {
+          id: {
+            in: roleIds,
+          },
+          isDeleted: false,
+        },
+      });
+
+      console.log({ roles });
+
+      if (roles.length !== roleIds.length) {
+        throw new AppError("INVALID_ROLES", 400);
+      }
+
+      const existingAssignments = await tx.userRole.findMany({
+        where: {
+          userId,
+          roleId: {
+            in: roleIds,
+          },
+        },
+      });
+
+      const existingRoleIds = new Set(
+        existingAssignments.map((assignment) => assignment.roleId),
+      );
+
+      const newAssignment = roleIds.filter(
+        (roleId) => !existingRoleIds.has(roleId),
+      );
+
+      if (newAssignment.length === 0) {
+        throw new AppError("ROLES_ALREADY_ASSIGNED", 400);
+      }
+
+      await tx.userRole.createMany({
+        data: newAssignment.map((roleId) => ({
+          userId,
+          roleId,
+        })),
+      });
+
+      return true;
+    });
+  }
+
+  // async assignRoleToUser(userId: string, roleIds: string[]) {
+  //   await prisma.$transaction(async (tx) => {
+  //     const existingUser = await tx.user.findUnique({
+  //       where: {
+  //         id: userId,
+  //       },
+  //     });
+
+  //     if (!existingUser) {
+  //       throw new AppError("User not found", 404);
+  //     }
+
+  //     // Remove duplicates
+  //     const uniqueRoleIds = [...new Set(roleIds)];
+
+  //     const roles = await tx.role.findMany({
+  //       where: {
+  //         id: {
+  //           in: uniqueRoleIds,
+  //         },
+
+  //         isDeleted: false,
+  //       },
+
+  //       select: {
+  //         id: true,
+  //       },
+  //     });
+
+  //     if (roles.length !== uniqueRoleIds.length) {
+  //       throw new AppError("INVALID_ROLES", 400);
+  //     }
+
+  //     const existingAssignments = await tx.userRole.findMany({
+  //       where: {
+  //         userId,
+
+  //         roleId: {
+  //           in: uniqueRoleIds,
+  //         },
+  //       },
+
+  //       select: {
+  //         roleId: true,
+  //       },
+  //     });
+
+  //     const existingRoleIds = new Set(
+  //       existingAssignments.map((assignment) => assignment.roleId),
+  //     );
+
+  //     const newAssignments = uniqueRoleIds.filter(
+  //       (roleId) => !existingRoleIds.has(roleId),
+  //     );
+
+  //     // Production-grade idempotency
+  //     if (newAssignments.length === 0) {
+  //       return;
+  //     }
+
+  //     await tx.userRole.createMany({
+  //       data: newAssignments.map((roleId) => ({
+  //         userId,
+  //         roleId,
+  //       })),
+
+  //       skipDuplicates: true,
+  //     });
+
+  //     return true;
+  //   });
+  // }
 }

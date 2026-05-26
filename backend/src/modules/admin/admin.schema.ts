@@ -35,5 +35,18 @@ export const updateRoleSchema = z
     message: "At least one field must be provided",
   });
 
+export const deleteRoleSchema = z.object({
+  roleId: z.uuid(),
+});
+
+export const assignRoleSchema = z.object({
+  roleIds: z.array(z.uuid()).min(1),
+});
+
+export const assignRoleParamsSchema = z.object({
+  userId: z.uuid(),
+});
+
 export type CreateRoleInputDTO = z.infer<typeof createRoleSchema>;
 export type UpdateRoleInputDTO = z.infer<typeof updateRoleSchema>;
+export type AssignRoleInputDTO = z.infer<typeof assignRoleSchema>;
