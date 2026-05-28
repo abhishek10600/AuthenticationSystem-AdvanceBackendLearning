@@ -47,6 +47,19 @@ export const assignRoleParamsSchema = z.object({
   userId: z.uuid(),
 });
 
+export const removeUserRoleParamsSchema = z.object({
+  userId: z.uuid(),
+  roleId: z.uuid(),
+});
+
+export const getAllUserOfRoleSchema = z.object({
+  roleId: z.uuid(),
+});
+
+export const getUserPermissionsSchema = z.object({
+  userId: z.uuid(),
+});
+
 export type CreateRoleInputDTO = z.infer<typeof createRoleSchema>;
 export type UpdateRoleInputDTO = z.infer<typeof updateRoleSchema>;
 export type AssignRoleInputDTO = z.infer<typeof assignRoleSchema>;

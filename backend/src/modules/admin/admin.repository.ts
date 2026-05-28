@@ -315,4 +315,92 @@ export class AdminRepository implements IAdminRepository {
       return true;
     });
   }
+
+  async removeUserRole(userId: string, roleId: string) {
+    await prisma.$transaction(async (tx) => {
+      const assignment = await tx.userRole.findUnique({
+        where: {
+          userId_roleId: {
+            userId,
+            roleId,
+          },
+        },
+        include: {
+          role: true,
+        },
+      });
+
+      if (!assignment) {
+        throw new AppError("ROLE_ASSIGNMENT_NOT_FOUND", 404);
+      }
+
+      if (assignment.role.name === "ADMIN") {
+        const adminCount = await tx.userRole.count({
+          where: {
+            role: {
+              name: "ADMIN",
+            },
+          },
+        });
+
+        if (adminCount <= 1) {
+          throw new AppError("LAST_ADMIN_ROLE", 403);
+        }
+      }
+
+      await tx.userRole.delete({
+        where: {
+          userId_roleId: {
+            userId,
+            roleId,
+          },
+        },
+      });
+
+      return true;
+    });
+  }
+
+  async getAllUsersByRoleId(roleId: string) {
+    const users = await prisma.userRole.findMany({
+      where: {
+        roleId,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return users;
+  }
+
+  async getUserPermissions(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    return user;
+  }
 }

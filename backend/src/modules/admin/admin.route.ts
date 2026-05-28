@@ -7,8 +7,11 @@ import {
   createRoleController,
   deleteRoleController,
   getAllRolesController,
+  getAllUserOfRoleController,
   getAllUsersController,
   getRoleByIdController,
+  getUserPermissionsController,
+  removeRoleFromUserController,
   updateRoleController,
 } from "./admin.controller.js";
 import { validate } from "../../middlewares/validate.middleware.js";
@@ -16,7 +19,10 @@ import {
   assignRoleParamsSchema,
   assignRoleSchema,
   deleteRoleSchema,
+  getAllUserOfRoleSchema,
   getRoleByIdSchema,
+  getUserPermissionsSchema,
+  removeUserRoleParamsSchema,
   updateRoleSchema,
 } from "./admin.schema.js";
 
@@ -81,6 +87,33 @@ router
     validate(assignRoleParamsSchema, "params"),
     validate(assignRoleSchema, "body"),
     assignRoleToUserController,
+  );
+
+router
+  .route("/users/:userId/roles/:roleId")
+  .delete(
+    authMiddleware,
+    authorizePermissions(Permissions.MANAGE_ROLES),
+    validate(removeUserRoleParamsSchema, "params"),
+    removeRoleFromUserController,
+  );
+
+router
+  .route("/users/roles/:roleId")
+  .get(
+    authMiddleware,
+    authorizePermissions(Permissions.MANAGE_ROLES),
+    validate(getAllUserOfRoleSchema, "params"),
+    getAllUserOfRoleController,
+  );
+
+router
+  .route("/users/:userId/permissions")
+  .get(
+    authMiddleware,
+    authorizePermissions(Permissions.MANAGE_USERS),
+    validate(getUserPermissionsSchema, "params"),
+    getUserPermissionsController,
   );
 
 export default router;

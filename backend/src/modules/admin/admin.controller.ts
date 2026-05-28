@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../utils/common/helpers/CatchAsync.js";
 import { sendResponse } from "../../utils/common/response/AppResponse.js";
 import { adminService } from "./admin.container.js";
+import { authService } from "../auth/auth.container.js";
+import { request } from "http";
 
 export const getAllUsersController = catchAsync(
   async (req: Request, res: Response) => {
@@ -89,6 +91,48 @@ export const assignRoleToUserController = catchAsync(
     sendResponse(res, 200, {
       success: true,
       message: "Role assigned to the user successfully",
+    });
+  },
+);
+
+export const removeRoleFromUserController = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.params.userId as string;
+    const roleId = req.params.roleId as string;
+
+    await adminService.removeRoleFromUser(userId, roleId);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "Role removed successfully",
+    });
+  },
+);
+
+export const getAllUserOfRoleController = catchAsync(
+  async (req: Request, res: Response) => {
+    const roleId = req.params.roleId as string;
+
+    const result = await adminService.getAllUsersByRoleId(roleId);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "Users fetched successfully",
+      data: result,
+    });
+  },
+);
+
+export const getUserPermissionsController = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.params.userId as string;
+
+    const result = await adminService.getUserPermissions(userId);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "User permissions fetched successfully",
+      data: result,
     });
   },
 );
