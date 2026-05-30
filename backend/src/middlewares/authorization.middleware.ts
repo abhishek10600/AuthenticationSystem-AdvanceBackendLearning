@@ -17,6 +17,11 @@ export const authorizePermissions =
 
         include: {
           userRoles: {
+            where: {
+              role: {
+                isDeleted: false,
+              },
+            },
             include: {
               role: {
                 include: {

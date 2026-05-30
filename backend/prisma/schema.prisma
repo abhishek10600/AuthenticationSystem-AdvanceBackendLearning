@@ -51,6 +51,7 @@ model Role {
   id              String           @id @default(uuid())
   name            String           @unique
   isDeleted       Boolean          @default(false)
+  isSystem        Boolean          @default(false)
   deletedAt       DateTime?
   createdAt       DateTime         @default(now())
   userRoles       UserRole[]

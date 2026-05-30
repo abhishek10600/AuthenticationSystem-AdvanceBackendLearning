@@ -1,5 +1,10 @@
 import { prisma } from "../../lib/prisma.js";
 import { AppError } from "../../utils/common/errors/AppError.js";
+import {
+  ensureRoleIsAssignable,
+  ensureRoleIsDeletable,
+  ensureRoleIsEditable,
+} from "./admin.helper.js";
 import { IAdminRepository } from "./admin.interface.js";
 import {
   AssignRoleInputDTO,
@@ -61,6 +66,7 @@ export class AdminRepository implements IAdminRepository {
       select: {
         id: true,
         name: true,
+        isSystem: true,
         createdAt: true,
 
         rolePermissions: {
@@ -101,6 +107,7 @@ export class AdminRepository implements IAdminRepository {
         id: {
           in: roleIds,
         },
+        isDeleted: false,
       },
     });
 
@@ -162,6 +169,8 @@ export class AdminRepository implements IAdminRepository {
       if (!existingRole) {
         throw new AppError("ROLE_NOT_FOUND", 404);
       }
+
+      ensureRoleIsEditable(existingRole);
 
       if (data.name) {
         const duplicateRole = await tx.role.findFirst({
@@ -283,6 +292,10 @@ export class AdminRepository implements IAdminRepository {
       if (roles.length !== roleIds.length) {
         throw new AppError("INVALID_ROLES", 400);
       }
+
+      roles.forEach((role) => {
+        ensureRoleIsAssignable(role);
+      });
 
       const existingAssignments = await tx.userRole.findMany({
         where: {

@@ -1,6 +1,11 @@
 import { IMMUTABLE_ROLES } from "../../constants/system-role.js";
 import { AppError } from "../../utils/common/errors/AppError.js";
 import { toResponseDTO } from "./admin.dto.js";
+import {
+  ensureRoleIsAssignable,
+  ensureRoleIsDeletable,
+  ensureRoleIsEditable,
+} from "./admin.helper.js";
 import { IAdminRepository } from "./admin.interface.js";
 import {
   AssignRoleInputDTO,
@@ -57,6 +62,14 @@ export class AdminService {
   }
 
   async updateRole(roleId: string, data: UpdateRoleInputDTO) {
+    const role = await this.adminRepo.getRoleById(roleId);
+
+    if (!role) {
+      throw new AppError("Role not found", 404);
+    }
+
+    ensureRoleIsEditable(role);
+
     const updatedRole = await this.adminRepo.updateRole(roleId, data);
 
     return updatedRole;
@@ -69,9 +82,11 @@ export class AdminService {
       throw new AppError("Role not found", 404);
     }
 
-    if (IMMUTABLE_ROLES.includes(role.name as any)) {
-      throw new AppError("System roles cannot be deleted", 403);
-    }
+    ensureRoleIsDeletable(role);
+
+    // if (IMMUTABLE_ROLES.includes(role.name as any)) {
+    //   throw new AppError("System roles cannot be deleted", 403);
+    // }
 
     await this.adminRepo.deleteRole(roleId);
   }
@@ -79,13 +94,17 @@ export class AdminService {
   async assignRoleToUser(userId: string, data: AssignRoleInputDTO) {
     const roles = await this.adminRepo.getRolesByIds(data.roleIds);
 
-    const immutableRoles = roles.filter((role) =>
-      IMMUTABLE_ROLES.includes(role.name as any),
-    );
-
-    if (immutableRoles.length > 0) {
-      throw new AppError("Immutable roles cannot be assigned", 403);
+    for (const role of roles) {
+      ensureRoleIsAssignable(role);
     }
+
+    // const immutableRoles = roles.filter((role) =>
+    //   IMMUTABLE_ROLES.includes(role.name as any),
+    // );
+
+    // if (immutableRoles.length > 0) {
+    //   throw new AppError("Immutable roles cannot be assigned", 403);
+    // }
 
     await this.adminRepo.assignRoleToUser(userId, data.roleIds);
   }
