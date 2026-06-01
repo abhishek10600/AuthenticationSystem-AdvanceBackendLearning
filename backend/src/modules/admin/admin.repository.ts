@@ -1,17 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
 import { AppError } from "../../utils/common/errors/AppError.js";
-import {
-  ensureRoleIsAssignable,
-  ensureRoleIsDeletable,
-  ensureRoleIsEditable,
-} from "./admin.helper.js";
 import { IAdminRepository } from "./admin.interface.js";
-import {
-  AssignRoleInputDTO,
-  getRoleByIdSchema,
-  UpdateRoleInputDTO,
-} from "./admin.schema.js";
-import { UpdateRoleInputType } from "./admin.types.js";
+import { UpdateRoleInputDTO } from "./admin.schema.js";
 
 export class AdminRepository implements IAdminRepository {
   async getAllUsers() {
@@ -170,8 +160,6 @@ export class AdminRepository implements IAdminRepository {
         throw new AppError("ROLE_NOT_FOUND", 404);
       }
 
-      ensureRoleIsEditable(existingRole);
-
       if (data.name) {
         const duplicateRole = await tx.role.findFirst({
           where: {
@@ -287,15 +275,9 @@ export class AdminRepository implements IAdminRepository {
         },
       });
 
-      console.log({ roles });
-
       if (roles.length !== roleIds.length) {
         throw new AppError("INVALID_ROLES", 400);
       }
-
-      roles.forEach((role) => {
-        ensureRoleIsAssignable(role);
-      });
 
       const existingAssignments = await tx.userRole.findMany({
         where: {
@@ -415,5 +397,69 @@ export class AdminRepository implements IAdminRepository {
     }
 
     return user;
+  }
+
+  async getAllPermissions() {
+    const permissions = await prisma.permission.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    return permissions;
+  }
+
+  async getPermissionDetails(permissionId: string) {
+    const permission = await prisma.permission.findUnique({
+      where: {
+        id: permissionId,
+      },
+      select: {
+        rolePermissions: {
+          select: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return permission;
+  }
+
+  async getUsersByPermission(permissionId: string) {
+    const permission = await prisma.permission.findUnique({
+      where: {
+        id: permissionId,
+      },
+      select: {
+        id: true,
+        name: true,
+        rolePermissions: {
+          select: {
+            role: {
+              select: {
+                userRoles: {
+                  select: {
+                    user: {
+                      select: {
+                        id: true,
+                        email: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    return permission;
   }
 }

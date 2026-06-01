@@ -60,6 +60,14 @@ export const getUserPermissionsSchema = z.object({
   userId: z.uuid(),
 });
 
+export const getPermissionDetailSchema = z.object({
+  permissionId: z.uuid(),
+});
+
+export const getUsersByPermissionSchema = z.object({
+  permissionId: z.uuid(),
+});
+
 export type CreateRoleInputDTO = z.infer<typeof createRoleSchema>;
 export type UpdateRoleInputDTO = z.infer<typeof updateRoleSchema>;
 export type AssignRoleInputDTO = z.infer<typeof assignRoleSchema>;

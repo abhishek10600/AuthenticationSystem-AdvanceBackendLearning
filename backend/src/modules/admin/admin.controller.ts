@@ -136,3 +136,41 @@ export const getUserPermissionsController = catchAsync(
     });
   },
 );
+
+export const getAllPermissionsController = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await adminService.getAllPermissions();
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "Permissions fetched successfully",
+      data: result,
+    });
+  },
+);
+
+export const getPermissionDetailController = catchAsync(
+  async (req: Request, res: Response) => {
+    const permissionId = req.params.permissionId as string;
+    const result = await adminService.getPermissionDetails(permissionId);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "Permission details fetched successfully",
+      data: result,
+    });
+  },
+);
+
+export const getUsersByPermissionController = catchAsync(
+  async (req: Request, res: Response) => {
+    const permissionId = req.params.permissionId as string;
+    const result = await adminService.getUsersByPermissions(permissionId);
+
+    sendResponse(res, 200, {
+      success: true,
+      message: "User with the permissions fetched",
+      data: result,
+    });
+  },
+);

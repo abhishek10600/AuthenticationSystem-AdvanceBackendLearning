@@ -18,6 +18,8 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z
     .string()
     .min(8, "Admin password must be at least 8 characters long"),
+  REDIS_URL: z.string(),
+  REDIS_PORT: z.coerce.number(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

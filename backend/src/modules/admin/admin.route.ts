@@ -6,11 +6,14 @@ import {
   assignRoleToUserController,
   createRoleController,
   deleteRoleController,
+  getAllPermissionsController,
   getAllRolesController,
   getAllUserOfRoleController,
   getAllUsersController,
+  getPermissionDetailController,
   getRoleByIdController,
   getUserPermissionsController,
+  getUsersByPermissionController,
   removeRoleFromUserController,
   updateRoleController,
 } from "./admin.controller.js";
@@ -20,8 +23,10 @@ import {
   assignRoleSchema,
   deleteRoleSchema,
   getAllUserOfRoleSchema,
+  getPermissionDetailSchema,
   getRoleByIdSchema,
   getUserPermissionsSchema,
+  getUsersByPermissionSchema,
   removeUserRoleParamsSchema,
   updateRoleSchema,
 } from "./admin.schema.js";
@@ -114,6 +119,32 @@ router
     authorizePermissions(Permissions.MANAGE_USERS),
     validate(getUserPermissionsSchema, "params"),
     getUserPermissionsController,
+  );
+
+router
+  .route("/permissions")
+  .get(
+    authMiddleware,
+    authorizePermissions(Permissions.MANAGE_ROLES),
+    getAllPermissionsController,
+  );
+
+router
+  .route("/permissions/:permissionId")
+  .get(
+    authMiddleware,
+    authorizePermissions(Permissions.MANAGE_ROLES),
+    validate(getPermissionDetailSchema, "params"),
+    getPermissionDetailController,
+  );
+
+router
+  .route("/permissions/:permissionId/users")
+  .get(
+    authMiddleware,
+    authorizePermissions(Permissions.MANAGE_ROLES),
+    validate(getUsersByPermissionSchema, "params"),
+    getUsersByPermissionController,
   );
 
 export default router;
