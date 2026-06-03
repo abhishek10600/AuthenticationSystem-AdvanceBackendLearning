@@ -14,19 +14,32 @@ datasource db {
 
 enum AuthProvider {
   EMAIL
-  GOOGLE_PROVIDER
+  GOOGLE
 }
 
 model User {
-  id              String       @id @default(uuid())
-  email           String       @unique
+  id              String        @id @default(uuid())
+  email           String        @unique
   passwordHash    String?
-  isEmailVerified Boolean      @default(false)
-  provider        AuthProvider @default(EMAIL)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  isEmailVerified Boolean       @default(false)
+  provider        AuthProvider  @default(EMAIL)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
   sessions        Session[]
   userRoles       UserRole[]
+  authAccounts    AuthAccount[]
+}
+
+model AuthAccount {
+  id                String       @id @default(uuid())
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          AuthProvider
+  providerAccountId String
+  createdAt         DateTime     @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {

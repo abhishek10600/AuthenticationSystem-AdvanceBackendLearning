@@ -17,6 +17,8 @@ export const registerUserController = catchAsync(
       ipAddress,
     });
 
+    console.log({ result });
+
     setCookies(res, result.refreshToken);
 
     sendResponse(res, 201, {
@@ -42,6 +44,8 @@ export const loginUserController = catchAsync(
       userAgent,
       ipAddress,
     });
+
+    console.log({ lalarefreshToken: result.refreshToken });
 
     setCookies(res, result.refreshToken);
 
