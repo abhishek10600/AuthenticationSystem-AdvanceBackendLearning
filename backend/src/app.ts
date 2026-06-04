@@ -33,10 +33,12 @@ app.get("/health-check", (req: Request, res: Response) => {
 
 import authRouter from "./modules/auth/auth.route.js";
 import adminRouter from "./modules/admin/admin.route.js";
+import oauthRouter from "./modules/auth/oauth/oauth.route.js";
 import { requestLogger } from "./middlewares/request-logger.middleware.js";
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/admin", adminRouter);
+app.use("/auth", oauthRouter);
 
 app.use((req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server`, 404));
