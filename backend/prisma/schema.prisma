@@ -22,7 +22,6 @@ model User {
   email           String        @unique
   passwordHash    String?
   isEmailVerified Boolean       @default(false)
-  provider        AuthProvider  @default(EMAIL)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   sessions        Session[]

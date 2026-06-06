@@ -4,9 +4,11 @@ import {
   User,
 } from "../../../generated/prisma/client.js";
 import {
+  AuthAccountWithUser,
   createSessionType,
   createUserType,
   findUserByIdType,
+  LinkAuthAccountType,
   updateSessionType,
   UserPermissionsType,
 } from "./auth.types.js";
@@ -42,7 +44,9 @@ export interface IAuthRepository {
   findAuthAccount(
     provider: AuthProvider,
     providerAccountId: string,
-  ): Promise<AuthAccount | null>;
+  ): Promise<AuthAccountWithUser | null>;
 
   createAuthAccount(data: AuthAccount): Promise<AuthAccount>;
+
+  linkAuthAccount(data: LinkAuthAccountType): Promise<AuthAccount>;
 }

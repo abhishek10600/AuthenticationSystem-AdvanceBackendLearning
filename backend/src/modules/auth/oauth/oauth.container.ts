@@ -1,5 +1,7 @@
+import { AuthRepository } from "../auth.repository.js";
 import { GoogleOAuthService } from "./oauth.service.js";
 
-const googleOAuthService = new GoogleOAuthService();
+const authRepository = new AuthRepository();
+const googleOAuthService = new GoogleOAuthService(authRepository);
 
 export { googleOAuthService };
