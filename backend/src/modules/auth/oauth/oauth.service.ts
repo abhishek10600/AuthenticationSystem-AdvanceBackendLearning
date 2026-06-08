@@ -4,11 +4,15 @@ import { googleClient } from "../../../lib/google.js";
 import { AppError } from "../../../utils/common/errors/AppError.js";
 import { IAuthRepository } from "../auth.interface.js";
 import { sanitizedUserResponse } from "../auth.response.js";
+import { AuthService } from "../auth.service.js";
 import { GoogleUserProfile } from "./oauth.dto.js";
 import { generateOAuthState } from "./oauth.helper.js";
 
 export class GoogleOAuthService {
-  constructor(private authRepo: IAuthRepository) {}
+  constructor(
+    private authRepo: IAuthRepository,
+    private authServie: AuthService,
+  ) {}
   async generateGoogleAuthUrl() {
     const state = generateOAuthState();
 
@@ -108,11 +112,25 @@ export class GoogleOAuthService {
     return sanitizedUserResponse(user);
   }
 
-  async handleGoogleCallback(code: string) {
+  async handleGoogleCallback(
+    code: string,
+    userAgent: string,
+    ipAddress: string,
+  ) {
     const googleUser = await this.exchangeCodeForGoogleUser(code);
 
     const user = await this.findOrCreateGoogleUser(googleUser);
 
-    return user;
+    const authSession = await this.authServie.createAuthenticatedSession(
+      user.id,
+      userAgent,
+      ipAddress,
+    );
+
+    return {
+      user,
+      accessToken: authSession.accessToken,
+      refreshToken: authSession.refreshToken,
+    };
   }
 }

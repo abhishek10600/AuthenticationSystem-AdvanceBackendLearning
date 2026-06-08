@@ -18,7 +18,7 @@ import { userType } from "./auth.types.js";
 export class AuthService {
   constructor(private authRepo: IAuthRepository) {}
 
-  private async createAuthenticatedSession(
+  async createAuthenticatedSession(
     userId: string,
     userAgent: string,
     ipAddress: string,
