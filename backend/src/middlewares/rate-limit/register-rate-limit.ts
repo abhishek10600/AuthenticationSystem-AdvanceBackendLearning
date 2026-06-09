@@ -13,6 +13,8 @@ export const registerRateLimiter = rateLimit({
     sendCommand: async (...args: string[]) => {
       return redis.call(args[0], ...args.slice(1)) as Promise<any>;
     },
+
+    prefix: "register",
   }),
 
   handler: (_, res) => {
