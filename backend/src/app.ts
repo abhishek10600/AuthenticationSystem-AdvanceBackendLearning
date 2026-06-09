@@ -5,11 +5,11 @@ import cookieParser from "cookie-parser";
 import { env } from "./config/env.config.js";
 import { globalErrorHandler } from "./middlewares/error.middleware.js";
 import { AppError } from "./utils/common/errors/AppError.js";
+import { gloabalRateLimiter } from "./middlewares/rate-limit/rate-limit.middleware.js";
 
 export const app = express();
 
 // app.set("trust proxy", 1);
-
 app.use(helmet());
 app.use(requestLogger);
 app.use(
@@ -30,6 +30,8 @@ app.get("/health-check", (req: Request, res: Response) => {
     message: "Health is fine",
   });
 });
+
+app.use(gloabalRateLimiter);
 
 import authRouter from "./modules/auth/auth.route.js";
 import adminRouter from "./modules/admin/admin.route.js";
