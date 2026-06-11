@@ -3,8 +3,9 @@ import { RedisStore } from "rate-limit-redis";
 import redis from "../../lib/redis.js";
 
 export const refreshTokenRateLimiter = rateLimit({
-  windowMs: 10 * 1000, // test
-  max: 4, // test
+  windowMs: 10 * 60 * 1000, // testing
+
+  max: 30, // testing
 
   standardHeaders: true,
   legacyHeaders: false,

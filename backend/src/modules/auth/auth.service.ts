@@ -14,6 +14,7 @@ import { IAuthRepository } from "./auth.interface.js";
 import { sanitizedUserResponse } from "./auth.response.js";
 import { env } from "../../config/env.config.js";
 import { userType } from "./auth.types.js";
+import { loginLockoutService } from "./security/login-lockout.service.js";
 
 export class AuthService {
   constructor(private authRepo: IAuthRepository) {}
@@ -102,6 +103,7 @@ export class AuthService {
     const existingUser = await this.authRepo.findUserByEmail(data.email);
 
     if (!existingUser || !existingUser.passwordHash) {
+      await loginLockoutService.recordFailure(data.email, data.ipAddress);
       throw new AppError("Invalid credentials", 401);
     }
 
@@ -111,8 +113,11 @@ export class AuthService {
     );
 
     if (!isPasswordCorrect) {
+      await loginLockoutService.recordFailure(data.email, data.ipAddress);
       throw new AppError("Invalid credentials", 401);
     }
+
+    await loginLockoutService.clearFailures(data.email, data.ipAddress);
 
     const authSession = await this.createAuthenticatedSession(
       existingUser.id,
