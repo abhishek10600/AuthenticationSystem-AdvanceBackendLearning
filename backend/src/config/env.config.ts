@@ -24,6 +24,7 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_REDIRECT_URI: z.string(),
   CLOUDFLARE_TURNSTILE_SECRET_KEY: z.string(),
+  CLOUDFLARE_TURNSTILE_TOKEN_VERIFICATION_URL: z.url(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

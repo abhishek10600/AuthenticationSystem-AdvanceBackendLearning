@@ -16,6 +16,7 @@ import { env } from "../../config/env.config.js";
 import { userType } from "./auth.types.js";
 import { loginLockoutService } from "./security/login-lockout.service.js";
 import { refreshProtectionService } from "./security/refresh-protection.service.js";
+import { captchaService } from "./security/captcha.service.js";
 
 export class AuthService {
   constructor(private authRepo: IAuthRepository) {}
@@ -69,7 +70,13 @@ export class AuthService {
     password: string;
     userAgent: string;
     ipAddress: string;
+    captchaToken: string;
   }) {
+    await captchaService.verifyTurnstileToken(
+      data.captchaToken,
+      data.ipAddress,
+    );
+
     const existingUser = await this.authRepo.findUserByEmail(data.email);
 
     if (existingUser) {
