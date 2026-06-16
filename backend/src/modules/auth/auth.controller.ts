@@ -34,7 +34,7 @@ export const registerUserController = catchAsync(
 
 export const loginUserController = catchAsync(
   async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, password, captchaToken } = req.body;
     const userAgent = req.headers["user-agent"] || "unknown";
     const ipAddress = req.ip || "unknown";
 
@@ -43,6 +43,7 @@ export const loginUserController = catchAsync(
       password,
       userAgent,
       ipAddress,
+      captchaToken,
     });
 
     console.log({ lalarefreshToken: result.refreshToken });

@@ -107,7 +107,24 @@ export class AuthService {
     password: string;
     userAgent: string;
     ipAddress: string;
+    captchaToken?: string;
   }) {
+    const requiresCaptcha = await loginLockoutService.requiresCaptcha(
+      data.email,
+      data.ipAddress,
+    );
+
+    if (requiresCaptcha && !data.captchaToken) {
+      throw new AppError("Captcha required", 403);
+    }
+
+    if (requiresCaptcha) {
+      await captchaService.verifyTurnstileToken(
+        data.captchaToken ?? "",
+        data.ipAddress,
+      );
+    }
+
     const existingUser = await this.authRepo.findUserByEmail(data.email);
 
     if (!existingUser || !existingUser.passwordHash) {

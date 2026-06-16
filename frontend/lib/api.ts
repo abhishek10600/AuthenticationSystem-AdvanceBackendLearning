@@ -35,9 +35,11 @@ export async function registerUser(data: RegisterUserInput) {
 interface LoginUserInput {
   email: string;
   password: string;
+  captchaToken?: string;
 }
 
 export async function loginUser(data: LoginUserInput) {
+  console.log({ frontend_api_captchaToken: data.captchaToken });
   const response = await axios.post(`${BACKEND_URL}/api/v1/auth/login`, data, {
     withCredentials: true,
   });

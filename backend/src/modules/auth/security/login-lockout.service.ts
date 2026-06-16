@@ -3,6 +3,22 @@ import redis from "../../../lib/redis.js";
 export class LoginLockoutService {
   private FAILURE_WINDOW = 24 * 60 * 60;
 
+  async requiresCaptcha(email: string, ipAddress: string): Promise<boolean> {
+    const emailKey = this.getEmailFailureKey(email);
+
+    const pairKey = this.getPairFailureKey(email, ipAddress);
+
+    const [emailFailures, pairFailures] = await Promise.all([
+      redis.get(emailKey),
+      redis.get(pairKey),
+    ]);
+
+    const emailCount = Number(emailFailures ?? 0);
+    const pairCount = Number(pairFailures ?? 0);
+
+    return emailCount >= 5 || pairCount >= 5;
+  }
+
   async checkLock(email: string, ip: string) {
     const lockKey = this.getPairLockKey(email, ip);
 
@@ -79,7 +95,7 @@ export class LoginLockoutService {
       return 15 * 60;
     }
 
-    if (attempts >= 5) {
+    if (attempts >= 6) {
       return 5 * 60;
     }
 

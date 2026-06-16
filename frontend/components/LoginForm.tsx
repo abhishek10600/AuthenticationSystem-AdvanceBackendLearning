@@ -3,16 +3,28 @@
 import { useState } from "react";
 import axios from "axios";
 import { loginUser } from "@/lib/api";
+import { Turnstile } from "@marsidev/react-turnstile";
+import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [captchaToken, setCaptchaToken] = useState<string>("");
+  const [showCaptcha, setShowCaptcha] = useState<boolean>(false);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (showCaptcha && !captchaToken) {
+      setError("Please complete the captcha");
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -21,14 +33,25 @@ const LoginForm = () => {
       const data = await loginUser({
         email,
         password,
+        captchaToken,
       });
 
       console.log("Login Success:", data);
-
+      setCaptchaToken("");
+      setShowCaptcha(false);
       alert("Login successful");
+      router.push("/dashboard");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError(error.response?.data?.message || "Login failed");
+
+        if (error.response?.data?.message === "Captcha required") {
+          setShowCaptcha(true);
+          setError("Please complete the captcha");
+          return;
+        }
+
+        setError(error.response?.data?.message);
       } else {
         setError("Something went wrong");
       }
@@ -67,6 +90,15 @@ const LoginForm = () => {
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
+
+        {showCaptcha && (
+          <Turnstile
+            siteKey={process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSITE_KEY!}
+            onSuccess={(token) => setCaptchaToken(token)}
+            onExpire={() => setCaptchaToken("")}
+            onError={() => setCaptchaToken("")}
+          />
+        )}
 
         <button
           type="submit"
